@@ -18,7 +18,7 @@ def main():
     child_env["GRAPH_RESEARCH_PROXY_BASE"] = "http://127.0.0.1:8765/v1"
     research = Path(__file__).resolve().parent
     proxy = subprocess.Popen([sys.executable, str(research / "alibaba_budget_proxy.py")],
-                             env=proxy_env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                             env=proxy_env, stderr=subprocess.DEVNULL)
     del proxy_env["DASHSCOPE_API_KEY"]
     token = None
     try:

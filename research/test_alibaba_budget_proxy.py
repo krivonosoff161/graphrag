@@ -47,7 +47,8 @@ class ProxyTests(unittest.TestCase):
         self.assertEqual(sum(status == 502 for status, _ in results), MAX_REQUESTS)
         self.assertEqual(sum(status == 429 for status, _ in results), 160)
         self.assertNotIn("private marker", repr(results) + output.getvalue())
-        self.assertEqual(output.getvalue(), "")
+        self.assertEqual(len(output.getvalue().splitlines()), MAX_REQUESTS)
+        self.assertTrue(all(line.startswith("PROXY_ATTEMPT ") for line in output.getvalue().splitlines()))
 
     def test_rejects_unexpected_paths_models_and_unbounded_requests(self):
         calls = []

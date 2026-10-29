@@ -4,6 +4,7 @@ Outputs counts and marker-presence only. No actual model call is made on import.
 This measures one illustrative example, not provider quality or security coverage.
 """
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -21,7 +22,9 @@ def run(*args):
                             text=True, capture_output=True, timeout=240)
     print("COMMAND", args[0], "EXIT", result.returncode, flush=True)
     if result.returncode:
-        # Do not print model output, request data, or provider diagnostic bodies.
+        # Extract exception class names only: never print model or provider text.
+        classes = re.findall(r"\b(ValueError|ValidationError|AuthenticationError|BadRequestError|APIConnectionError|APIStatusError|RuntimeError|KeyError|TypeError|TimeoutError):", result.stdout + "\n" + result.stderr)
+        print("ERROR_CLASSES", sorted(set(classes))[:12], flush=True)
         raise RuntimeError("GraphRAG command failed; inspect controlled local diagnostics")
     return result.stdout
 

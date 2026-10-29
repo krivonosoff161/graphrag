@@ -144,6 +144,7 @@ class BudgetProxy:
             if self.attempted >= MAX_REQUESTS:
                 raise Rejected(429, "request budget exhausted")
             self.attempted += 1
+            print("PROXY_ATTEMPT", self.attempted, "chat" if path == CHAT_PATH else "embedding", flush=True)
         try:
             output = self.transport(path, encoded)
             if not isinstance(output, bytes) or len(output) > MAX_OUTPUT_BYTES:
@@ -189,6 +190,7 @@ def make_handler(proxy):
                 stream = json.loads(body).get("stream", False) if self.path == CHAT_PATH else False
                 self._reply(200, result, "text/event-stream" if stream else "application/json")
             except Rejected as error:
+                print("PROXY_REFUSAL", error.status, error.message, flush=True)
                 self._reply(error.status, json.dumps({"error": error.message}).encode("ascii"))
             except (OSError, TimeoutError):
                 self._reply(400, b'{"error":"incomplete request"}')
