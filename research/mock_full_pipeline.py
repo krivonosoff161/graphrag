@@ -57,7 +57,24 @@ def main():
         print("INDEX_TITLES_BEFORE", sorted(before["title"].tolist()))
         print("INDEX_TITLES_AFTER_DELETION_UPDATE", sorted(after["title"].tolist()))
         assert "b.txt" in set(after["title"]), "unexpected change: re-evaluate issue"
-        print("OBSERVED_STALE_DOCUMENT_AFTER_UPDATE mock-mode; actual model query not tested")
+        units = pd.read_parquet(root / "output" / "text_units.parquet")
+        print("MARKER_IN_TEXT_UNITS_AFTER_UPDATE", bool(units["text"].str.contains("Q7F9", regex=False).any()))
+        assert units["text"].str.contains("Q7F9", regex=False).any()
+
+        # A separate workspace is a clean full-index control, not a second update.
+        fresh = root / "clean-control"
+        run("init", "--root", str(fresh), "--model", "gpt-4o-mini", "--embedding", "text-embedding-3-small")
+        (fresh / "settings.yaml").write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
+        (fresh / "input").mkdir(exist_ok=True)
+        (fresh / "input" / "a.txt").write_text("Alice and Team are fictional coworkers.", encoding="utf-8")
+        run("index", "--root", str(fresh), "--method", "standard", "--skip-validation")
+        clean = pd.read_parquet(fresh / "output" / "documents.parquet")
+        clean_units = pd.read_parquet(fresh / "output" / "text_units.parquet")
+        print("CLEAN_REINDEX_TITLES", sorted(clean["title"].tolist()))
+        print("MARKER_IN_TEXT_UNITS_CLEAN_REINDEX", bool(clean_units["text"].str.contains("Q7F9", regex=False).any()))
+        assert set(clean["title"]) == {"a.txt"}
+        assert not clean_units["text"].str.contains("Q7F9", regex=False).any()
+        print("OBSERVED_STALE_DOCUMENT_AFTER_UPDATE; mock-model responses; real query not tested")
 
 
 if __name__ == "__main__":
