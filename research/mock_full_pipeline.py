@@ -22,7 +22,7 @@ def run(*args):
 def main():
     with tempfile.TemporaryDirectory(prefix="graphrag2590_") as temp:
         root = Path(temp)
-    run("init", "--root", str(root), "--model", "gpt-4o-mini", "--embedding", "text-embedding-3-small")
+        run("init", "--root", str(root), "--model", "gpt-4o-mini", "--embedding", "text-embedding-3-small")
         config_path = root / "settings.yaml"
         config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
         extract = '("entity"<|>ALICE<|>PERSON<|>Alice has fictional marker Q7F9)##("entity"<|>TEAM<|>ORGANIZATION<|>A fictional team)##("relationship"<|>ALICE<|>TEAM<|>Alice works with Team<|>5)##<|COMPLETE|>'
