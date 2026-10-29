@@ -53,6 +53,9 @@ def main():
         assert set(before["title"]) == {"a.txt", "b.txt"}
         (inputs / "b.txt").unlink()
         run("update", "--root", str(root), "--method", "standard")
+        print("ALL_DOCUMENT_TABLE_PATHS_AFTER_UPDATE", sorted(str(p.relative_to(root)) for p in root.rglob("documents.parquet")))
+        for table in sorted(root.rglob("documents.parquet")):
+            print("DOCUMENT_TABLE", str(table.relative_to(root)), sorted(pd.read_parquet(table)["title"].tolist()))
         after = pd.read_parquet(root / "output" / "documents.parquet")
         print("INDEX_TITLES_BEFORE", sorted(before["title"].tolist()))
         print("INDEX_TITLES_AFTER_DELETION_UPDATE", sorted(after["title"].tolist()))
@@ -60,6 +63,8 @@ def main():
         units = pd.read_parquet(root / "output" / "text_units.parquet")
         print("MARKER_IN_TEXT_UNITS_AFTER_UPDATE", bool(units["text"].str.contains("Q7F9", regex=False).any()))
         assert units["text"].str.contains("Q7F9", regex=False).any()
+        run("query", "What is the fictional marker?", "--root", str(root), "--method", "basic", "--data", str(root / "output"))
+        print("MOCK_QUERY_COMPLETED; canned answer is not evidence of retrieval")
 
         # A separate workspace is a clean full-index control, not a second update.
         fresh = root / "clean-control"
@@ -74,7 +79,7 @@ def main():
         print("MARKER_IN_TEXT_UNITS_CLEAN_REINDEX", bool(clean_units["text"].str.contains("Q7F9", regex=False).any()))
         assert set(clean["title"]) == {"a.txt"}
         assert not clean_units["text"].str.contains("Q7F9", regex=False).any()
-        print("OBSERVED_STALE_DOCUMENT_AFTER_UPDATE; mock-model responses; real query not tested")
+        print("ORIGINAL_INDEX_RETAINS_DELETED_DOCUMENT; update output and real-model behavior require separate inspection")
 
 
 if __name__ == "__main__":
